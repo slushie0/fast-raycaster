@@ -1,5 +1,7 @@
-use std::f32::{consts::PI};
+use std::{f32::{consts::PI}, default};
 use macroquad::{math::*, prelude::*};
+
+const PLAYER_SPEED: f32 = 1.0;
 
 fn dist (x1:f32, y1:f32, x2:f32, y2:f32) -> f32 {
     let dx = x1 - x2;
@@ -70,6 +72,11 @@ async fn main() {
     let mut x = 20.0;
     let mut y = 20.0;
 
+    let mut timer: i32;
+    let mut timer_old: i32 = 0;
+    let mut fps: i32 = 0;
+    let mut dt: f32;
+
     //calculate wall lighting (darkness depends on angle)
     for i in 0..4 {
         let ex = walls[i][0];
@@ -88,30 +95,32 @@ async fn main() {
     }
 
     loop {
+        let dt = get_frame_time();
+
         if is_key_down(KeyCode::W) {
-            x += 1.0*cos_deg(angle);
-            y -= 1.0*sin_deg(angle);
+            x += PLAYER_SPEED*cos_deg(angle);
+            y -= PLAYER_SPEED*sin_deg(angle);
         }
         if is_key_down(KeyCode::D) {
-            x = x+1.0*cos_deg(angle-90.0);
-            y = y-1.0*sin_deg(angle-90.0);
+            x = x+PLAYER_SPEED*cos_deg(angle-90.0);
+            y = y-PLAYER_SPEED*sin_deg(angle-90.0);
         }
         if is_key_down(KeyCode::S) {
-            x = x+1.0*cos_deg(angle+180.0);
-            y = y-1.0*sin_deg(angle+180.0);
+            x = x+PLAYER_SPEED*cos_deg(angle+180.0);
+            y = y-PLAYER_SPEED*sin_deg(angle+180.0);
         }
         if is_key_down(KeyCode::A) {
-            x = x+1.0*cos_deg(angle+90.0);
-            y = y-1.0*sin_deg(angle+90.0);
+            x = x+PLAYER_SPEED*cos_deg(angle+90.0);
+            y = y-PLAYER_SPEED*sin_deg(angle+90.0);
         }
         if is_key_down(KeyCode::Left) {
-            angle += 1.0;
+            angle += PLAYER_SPEED;
             if angle > 360.0 {
                 angle = 0.0;
             }
         }
         if is_key_down(KeyCode::Right) {
-            angle -= 1.0;
+            angle -= PLAYER_SPEED;
             if angle < 0.0 {
                 angle = 360.0;
             }
@@ -202,29 +211,24 @@ async fn main() {
                 vec2(x1, (height/2.0)-line_height1),
                 col
             );
-
-            draw_line(
-                x1, (height/2.0)+line_height1,
-                x1, (height/2.0)-line_height1,
-                3.0, RED
-            );
-            draw_line(
-                x2, (height/2.0)+line_height2,
-                x2, (height/2.0)-line_height2,
-                3.0, RED
-            );
-            draw_line(
-                x1, (height/2.0)+line_height1,
-                x2, (height/2.0)+line_height2,
-                3.0, RED
-            );
-            draw_line(
-                x1, (height/2.0)-line_height1,
-                x2, (height/2.0)-line_height2,
-                3.0, RED
-            );
         }
         
+        timer = get_time().round() as i32;
+        if timer != timer_old {
+            fps = get_fps();
+        }
+        timer_old = timer;
+
+        draw_text_ex(
+            &fps.to_string(),
+            10.0, 30.0,
+            TextParams {
+                font_size: (20),
+                color: (BLACK),
+                ..Default::default()
+            }
+        );
+
         next_frame().await;
     }
 }
