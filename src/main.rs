@@ -1,4 +1,4 @@
-use std::{f32::{consts::PI}, default};
+use std::{f32::{consts::PI}};
 use macroquad::{math::*, prelude::*};
 
 const PLAYER_SPEED: f32 = 1.0;
@@ -50,7 +50,6 @@ fn ray (x:f32, y:f32, dir:f32, clip:f32, wall:[f32; 4]) -> f32 {
         }
     }
     // This is the end of Iron Programming's code
-	//MAYBE IT CONTINUES TO HERE AND RETURNS 0?
     if closest == clip {
 	    return 0.0;
 	}
@@ -59,13 +58,23 @@ fn ray (x:f32, y:f32, dir:f32, clip:f32, wall:[f32; 4]) -> f32 {
 
 #[macroquad::main("Raycaster")]
 async fn main() {
-    let walls: [[f32; 4]; 5] = [[0.0, 0.0, 400.0, 0.0], [400.0, 0.0, 400.0, 400.0], [400.0, 400.0, 0.0, 400.0], [0.0, 400.0, 0.0, 0.0], [200.0, 40.0, 300.0, 300.0]];
-    let fov: f32 = 66.0;
-    let half_fov: f32 = fov/2.0;
 
     let width = screen_width();
     let height = screen_height();
+    let walls: [[f32; 4]; 5] = [[0.0, 0.0, 400.0, 0.0], [400.0, 0.0, 400.0, 400.0], [400.0, 400.0, 0.0, 400.0], [0.0, 400.0, 0.0, 0.0], [200.0, 40.0, 300.0, 300.0]];
+    //println!("Dist: {}", dist(200.0, 200.0, 200.0, 0.0));
+    //let gar = (a2(walls[i][1] - 200.0, walls[i][0] - 200.0) + 360.0) % 360.0;
+    //println!("Ray : {}", ray(200.0, 200.0, 0.0, 500.0, walls[1]));
+    
+    let fov: f32 = 66.0;
+    //let viewing_plane = width;
+    //let focal_length = viewing_plane / 2.0;
+
+    let half_fov: f32 = fov/2.0;
+
+    
     let angle_increment = fov/width;
+    let x_increment = width/fov;
     
     let mut wall_lighting: [f32; 4] = [0.0, 0.0, 0.0, 0.0];
     let mut angle: f32 = 0.0;
@@ -75,7 +84,6 @@ async fn main() {
     let mut timer: i32;
     let mut timer_old: i32 = 0;
     let mut fps: i32 = 0;
-    let mut dt: f32;
 
     //calculate wall lighting (darkness depends on angle)
     for i in 0..4 {
@@ -95,7 +103,6 @@ async fn main() {
     }
 
     loop {
-        let dt = get_frame_time();
 
         if is_key_down(KeyCode::W) {
             x += PLAYER_SPEED*cos_deg(angle);
@@ -135,66 +142,61 @@ async fn main() {
             let mut dist1 = dist(x, y, walls[i][0], walls[i][1]);
             let mut dist2 = dist(x, y, walls[i][2], walls[i][3]);
 
-
             //shift the angle of wall points to account for player rotation and fov
             let mut shift1 = angle1+angle+33.0;
-            while shift1 > 360.0 { shift1 -= 360.0; }
             let mut shift2 = angle2+angle+33.0;
+            while shift1 > 360.0 { shift1 -= 360.0; }
             while shift2 > 360.0 { shift2 -= 360.0; }
 
-            //frustum culling 213 degrees (180+33) is the exact back of the camera
-            if
-                (shift1 > 123.0 && shift1 < 303.0) && (shift2 > 123.0 && shift2 < 303.0) ||
-                (shift1 > 66.0 && shift1 < 246.0)  && (shift2 > 66.0 && shift2 < 246.0) ||
-                (shift1 > 180.0 && shift1 < 360.0)  && (shift2 > 180.0 && shift2 < 360.0) {
-                //println!("{}",  shift1);
+            let mut ac1 = shift1 - 33.0;
+            let mut ac2 = shift2 - 33.0;
+            if ac1 < 0.0 { ac1 = ac1 + 360.0; }
+            if ac2 < 0.0 { ac2 = ac2 + 360.0; }
+
+            //frustum culling
+            /*if
+                (ac1 > 90.0 && ac1 < 270.0) && (ac2 > 90.0 && ac2 < 270.0) ||
+                (ac1 > 33.0 && ac1 < 213.0) && (ac2 > 33.0 && ac2 < 213.0) ||
+                (ac1 > 147.0 && ac1 < 327.0) && (ac2 > 147.0 && ac2 < 327.0)
+            {
                 continue;
+            }*/
+            if
+                (ac1 > 90.0 && ac1 < 270.0) && (ac2 > 90.0 && ac2 < 270.0) ||
+                (ac1 > 34.0 && ac1 < 212.0) && (ac2 > 34.0 && ac2 < 212.0) ||
+                (ac1 > 148.0 && ac1 < 326.0) && (ac2 > 148.0 && ac2 < 326.0)
+            {
+                //continue;
             }
 
-            let mut x1 = shift1/angle_increment;
-            let mut x2 = shift2/angle_increment;
+            let mut x1 = shift1*x_increment;
+            let mut x2 = shift2*x_increment;
 
-            /*if
-                (x1 > width && x2 > width) ||
-                (x1 < width && x2 < width) {
-                //continue;
-            }*/
-
-            let ac1 = shift1 - 33.0;
-            let ac2 = shift2 - 33.0;
-
+            //cast ray if on vertex is off-screen
             if ac1 > 33.0 && ac1 < 180.0 {
                 x1 = width;
+                shift1 = 66.0;
                 dist1 = ray(x, y, angle - half_fov, 500.0, walls[i]);
-            } else if ac1 > 180.0 {
+            } else if ac1 > 180.0 && ac1 < 327.0 {
                 x1 = 0.0;
+                shift1 = 0.0;
                 dist1 = ray(x, y, angle + half_fov, 500.0, walls[i]);
             }
             if ac2 > 33.0 && ac2 < 180.0 {
                 x2 = width; 
+                shift2 = 66.0;
                 dist2 = ray(x, y, angle - half_fov, 500.0, walls[i]);
-            } else if ac2 > 180.0 {
+            } else if ac2 > 180.0 && ac2 < 327.0 {
                 x2 = 0.0;
+                shift2 = 0.0;
                 dist2 = ray(x, y, angle + half_fov, 500.0, walls[i]);
             }
 
-            /*
-            if shift1 > 60.0 && shift1 < 213.0 {
-                x1 = width;
-                dist1 = ray(x, y, angle - half_fov, 500.0, walls[i]);
-            } else if shift1 > 213.0 {
-                x1 = 0.0;
-                dist1 = ray(x, y, angle + half_fov, 500.0, walls[i]);
-            }
-            if shift2 > 60.0 && shift2 < 213.0 {
-                x2 = width; 
-                dist2 = ray(x, y, angle - half_fov, 500.0, walls[i]);
-            } else if shift2 > 213.0 {
-                x2 = 0.0;
-                dist2 = ray(x, y, angle + half_fov, 500.0, walls[i]);
-            }
-            */
 
+
+            //
+            // HERE IS THE PROBLEM!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            //
             let line_height1 = 10.0*width/dist1/cos_deg(shift1*angle_increment);
             let line_height2 = 10.0*width/dist2/cos_deg(shift2*angle_increment);
             let col = Color{r:wall_lighting[i], g:wall_lighting[i], b:wall_lighting[i], a:1.0};
