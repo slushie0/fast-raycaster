@@ -55,20 +55,15 @@ fn ray (x:f32, y:f32, dir:f32, clip:f32, wall:[f32; 4]) -> f32 {
 	}
 	return closest;
 }
-
 #[macroquad::main("Raycaster")]
 async fn main() {
 
     let width = screen_width();
     let height = screen_height();
     let walls: [[f32; 4]; 5] = [[0.0, 0.0, 400.0, 0.0], [400.0, 0.0, 400.0, 400.0], [400.0, 400.0, 0.0, 400.0], [0.0, 400.0, 0.0, 0.0], [200.0, 40.0, 300.0, 300.0]];
-    //println!("Dist: {}", dist(200.0, 200.0, 200.0, 0.0));
-    //let gar = (a2(walls[i][1] - 200.0, walls[i][0] - 200.0) + 360.0) % 360.0;
-    //println!("Ray : {}", ray(200.0, 200.0, 0.0, 500.0, walls[1]));
+
     
     let fov: f32 = 66.0;
-    //let viewing_plane = width;
-    //let focal_length = viewing_plane / 2.0;
 
     let half_fov: f32 = fov/2.0;
 
@@ -139,8 +134,6 @@ async fn main() {
             //get angle and distance between the camera and wall points
             let angle1 = (a2(walls[i][1] - y, walls[i][0] - x) + 360.0) % 360.0;
             let angle2 = (a2(walls[i][3] - y, walls[i][2] - x) + 360.0) % 360.0;
-            let mut dist1 = dist(x, y, walls[i][0], walls[i][1]);
-            let mut dist2 = dist(x, y, walls[i][2], walls[i][3]);
 
             //shift the angle of wall points to account for player rotation and fov
             let mut shift1 = angle1+angle+33.0;
@@ -154,23 +147,19 @@ async fn main() {
             if ac2 < 0.0 { ac2 = ac2 + 360.0; }
 
             //frustum culling
-            /*if
-                (ac1 > 90.0 && ac1 < 270.0) && (ac2 > 90.0 && ac2 < 270.0) ||
-                (ac1 > 33.0 && ac1 < 213.0) && (ac2 > 33.0 && ac2 < 213.0) ||
-                (ac1 > 147.0 && ac1 < 327.0) && (ac2 > 147.0 && ac2 < 327.0)
-            {
-                continue;
-            }*/
             if
                 (ac1 > 90.0 && ac1 < 270.0) && (ac2 > 90.0 && ac2 < 270.0) ||
                 (ac1 > 34.0 && ac1 < 212.0) && (ac2 > 34.0 && ac2 < 212.0) ||
                 (ac1 > 148.0 && ac1 < 326.0) && (ac2 > 148.0 && ac2 < 326.0)
             {
-                //continue;
+                continue;
             }
 
             let mut x1 = shift1*x_increment;
             let mut x2 = shift2*x_increment;
+
+            let mut dist1 = dist(x, y, walls[i][0], walls[i][1]);
+            let mut dist2 = dist(x, y, walls[i][2], walls[i][3]);
 
             //cast ray if on vertex is off-screen
             if ac1 > 33.0 && ac1 < 180.0 {
@@ -192,11 +181,6 @@ async fn main() {
                 dist2 = ray(x, y, angle + half_fov, 500.0, walls[i]);
             }
 
-
-
-            //
-            // HERE IS THE PROBLEM!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-            //
             let line_height1 = 10.0*width/dist1/cos_deg(shift1*angle_increment);
             let line_height2 = 10.0*width/dist2/cos_deg(shift2*angle_increment);
             let col = Color{r:wall_lighting[i], g:wall_lighting[i], b:wall_lighting[i], a:1.0};
