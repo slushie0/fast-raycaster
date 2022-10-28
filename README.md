@@ -8,3 +8,5 @@ Since the program already knows where the walls are, this one just calculates th
 ## Known Bugs:
 - Camera clipping
 - Walls not drawn in order
+
+![Demo Image](https://github.com/slushie0/fast-raycaster/blob/main/fast-raycaster.png?raw=true)
