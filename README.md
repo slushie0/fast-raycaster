@@ -9,4 +9,4 @@ Since the program already knows where the walls are, this one just calculates th
 - Camera clipping
 - Walls not drawn in order
 
-![Demo Image](https://github.com/slushie0/fast-raycaster/blob/main/fast-raycaster.png?raw=true)
+<img src="https://raw.githubusercontent.com/slushie0/fast-raycaster/main/demo.png">
