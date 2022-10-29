@@ -165,20 +165,20 @@ async fn main() {
             if ac1 > 33.0 && ac1 < 180.0 {
                 x1 = width;
                 shift1 = 66.0;
-                dist1 = ray(x, y, angle - half_fov, 500.0, walls[i]);
+                dist1 = ray(x, y, angle - half_fov, 1000.0, walls[i]);
             } else if ac1 > 180.0 && ac1 < 327.0 {
                 x1 = 0.0;
                 shift1 = 0.0;
-                dist1 = ray(x, y, angle + half_fov, 500.0, walls[i]);
+                dist1 = ray(x, y, angle + half_fov, 1000.0, walls[i]);
             }
             if ac2 > 33.0 && ac2 < 180.0 {
                 x2 = width; 
                 shift2 = 66.0;
-                dist2 = ray(x, y, angle - half_fov, 500.0, walls[i]);
+                dist2 = ray(x, y, angle - half_fov, 1000.0, walls[i]);
             } else if ac2 > 180.0 && ac2 < 327.0 {
                 x2 = 0.0;
                 shift2 = 0.0;
-                dist2 = ray(x, y, angle + half_fov, 500.0, walls[i]);
+                dist2 = ray(x, y, angle + half_fov, 1000.0, walls[i]);
             }
 
             let line_height1 = 10.0*width/dist1/cos_deg(shift1*angle_increment);
